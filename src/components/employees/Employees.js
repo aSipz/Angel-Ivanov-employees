@@ -20,7 +20,7 @@ export default function Employees() {
     const convertToDate = string => {
         return string !== 'NULL' && string !== 'undefined' && string !== ''
             ? Date.parse(string)
-            : Date.now()
+            : Date.now();
     };
 
     const calculateDaysTogether = (firstEmployee, secondEmployee) => {

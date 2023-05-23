@@ -23,6 +23,10 @@
     gap: 8px;
 }
 
+.file-select div button {
+    flex-grow: 1;
+}
+
 .results,
 .input {
     max-height: 50%;
