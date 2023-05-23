@@ -1,6 +1,7 @@
 import './Employees.css'
 
 import useFileUpload from '../../hooks/useFileUpload';
+import Table from './Table';
 
 export default function Employees() {
 
@@ -117,7 +118,8 @@ export default function Employees() {
                     {result && (result.length !== 0
                         ? <div className='results'>
                             <p className='label'>Results:</p>
-                            <table className='results-table'>
+                            <Table elementClass={'results-table'} content={result} headers={['Employee ID #1', 'Employee ID #2', 'Days worked together']} />
+                            {/* <table className='results-table'>
                                 <thead>
                                     <tr>
                                         <th>Employee ID #1</th>
@@ -131,7 +133,7 @@ export default function Employees() {
                                             {e.map(x => <td key={x}>{x}</td>)}
                                         </tr>)}
                                 </tbody>
-                            </table>
+                            </table> */}
                         </div>
                         : <p className='error'>No common projects or working interval!</p>)
                     }
@@ -139,7 +141,8 @@ export default function Employees() {
                     {showInput && fileContent && (Object.values(fileContent[0]).length === 4
                         ? <div className='input'>
                             <p className='label'>Input:</p>
-                            <table className='input-table'>
+                            <Table elementClass={'input-table'} content={fileContent} headers={['EmpID', 'ProjectID', 'DateFrom', 'DateTo']} />
+                            {/* <table className='input-table'>
                                 <thead>
                                     <tr>
                                         <th>EmpID</th>
@@ -154,7 +157,7 @@ export default function Employees() {
                                             {Object.values(e).map(x => <td key={x}>{x}</td>)}
                                         </tr>)}
                                 </tbody>
-                            </table>
+                            </table> */}
                         </div>
                         : <p className='error'>Incorrect data format in file!</p>)
                     }
