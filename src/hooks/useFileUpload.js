@@ -4,6 +4,7 @@ export default function useFileUpload() {
     const [file, setFile] = useState();
     const [fileAsText, setFileAsText] = useState(null);
     const [error, setError] = useState(null);
+    const [showInput, setShowInput] = useState(false);
     const inputRef = useRef(null);
 
     useEffect(() => {
@@ -34,6 +35,7 @@ export default function useFileUpload() {
     };
 
     const onCancel = () => {
+        showInput && setShowInput(false);
         setFile(null);
     };
 
@@ -44,15 +46,21 @@ export default function useFileUpload() {
 
             const fileExtension = inputFile?.type.split("/")[1];
             if (fileExtension !== 'csv') {
-                setError("Please input a csv file");
+                setError("Please input a csv file!");
+                setFile(null);
                 return;
             }
 
             setError(null);
             setFile(inputFile);
+            setShowInput(false);
             e.target.value = null;
         }
     };
+
+    const toggleInput = () => {
+        setShowInput(!showInput);
+    }
 
     return [
         file,
@@ -61,6 +69,8 @@ export default function useFileUpload() {
         onCancel,
         handleFileChange,
         fileAsText,
-        error
+        error,
+        showInput,
+        toggleInput
     ]
 }

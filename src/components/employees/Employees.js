@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import './Employees.css'
+
 import useFileUpload from '../../hooks/useFileUpload';
 
 export default function Employees() {
@@ -10,20 +11,16 @@ export default function Employees() {
         onCancel,
         handleFileChange,
         fileAsText,
-        error
+        error,
+        showInput,
+        toggleInput
     ] = useFileUpload();
-
-    const [showInput, setShowInput] = useState(false);
-
-    const toggleInput = () => {
-        setShowInput(!showInput);
-    }
 
     const convertToDate = string => {
         return string !== 'NULL' && string !== 'undefined' && string !== ''
             ? Date.parse(string)
             : Date.now()
-    }
+    };
 
     const calculateDaysTogether = (firstEmployee, secondEmployee) => {
         const oneDay = 1000 * 60 * 60 * 24;
@@ -47,13 +44,15 @@ export default function Employees() {
         if (/projectID/i.test(rows[0])) {
             rows.shift();
         }
-        const result = rows.map(r => r
-            .split(/,|;/)
-            .reduce((acc, curr, i) => {
-                curr = curr.trim();
-                const key = headers[i];
-                return { ...acc, [key]: curr }
-            }, {}));
+        const result = rows
+            .map(r => r
+                .split(/,|;/)
+                .reduce((acc, curr, i) => {
+                    curr = curr.trim();
+                    const key = headers[i];
+                    return { ...acc, [key]: curr }
+                }, {}))
+            .filter(x => x.empId);
         return result;
     };
 
@@ -66,7 +65,7 @@ export default function Employees() {
                 if (e.projectId !== r.projectId) {
                     return;
                 }
-                if (e.dateFrom >= r.dateTo || r.dateFrom >= e.dateTo) {
+                if (convertToDate(e.dateFrom) > convertToDate(r.dateTo) || convertToDate(r.dateFrom) > convertToDate(e.dateTo)) {
                     return;
                 }
                 const workedTogether = calculateDaysTogether(e, r);
@@ -85,13 +84,13 @@ export default function Employees() {
     const fileContent = fileAsText
         ? csvToObject(fileAsText)
         : null;
-        
+
     const result = fileContent
         ? findLongestPeriod(fileContent)
         : null;
 
     return (
-        <>
+        <div className='container'>
             <div className='file-select'>
                 <input
                     accept=".csv"
@@ -100,59 +99,67 @@ export default function Employees() {
                     hidden
                     onChange={handleFileChange}
                 />
+
+                <button className='button' onClick={handleClick} >{file ? `${file.name} selected` : 'Select file'}</button>
+
                 {file &&
                     <div>
                         <button className='button green' onClick={toggleInput}>{showInput ? 'Hide file content' : 'Show file content'}</button>
-                        <button className='button red' onClick={() => { toggleInput(); onCancel(); }} >Close file</button>
+                        <button className='button red' onClick={onCancel} >Close file</button>
                     </div>
                 }
-                <button className='button' onClick={handleClick} >{file ? `${file.name} selected` : 'Select file'}</button>
             </div>
 
-            {error && <p className='error'>{error}</p>}
+            {error ?
+                <p className='error'>{error}</p>
+                :
+                <>
+                    {result && (result.length !== 0
+                        ? <div className='results'>
+                            <p className='label'>Results:</p>
+                            <table className='results-table'>
+                                <thead>
+                                    <tr>
+                                        <th>Employee ID #1</th>
+                                        <th>Employee ID #2</th>
+                                        <th>Days worked together</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {result.map(e =>
+                                        <tr key={e.join('')}>
+                                            {e.map(x => <td key={x}>{x}</td>)}
+                                        </tr>)}
+                                </tbody>
+                            </table>
+                        </div>
+                        : <p className='error'>No common projects or working interval!</p>)
+                    }
 
-            {result && (result.length !== 0
-                ? <div className='results'>
-                    <table className='results-table'>
-                        <thead>
-                            <tr>
-                                <th>Employee ID #1</th>
-                                <th>Employee ID #2</th>
-                                <th>Days worked together</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {result.map(e =>
-                                <tr key={e.join('')}>
-                                    {e.map(x => <td key={x}>{x}</td>)}
-                                </tr>)}
-                        </tbody>
-                    </table>
-                </div>
-                : <p>No common projects or working interval!</p>)
+                    {showInput && fileContent && (Object.values(fileContent[0]).length === 4
+                        ? <div className='input'>
+                            <p className='label'>Input:</p>
+                            <table className='input-table'>
+                                <thead>
+                                    <tr>
+                                        <th>EmpID</th>
+                                        <th>ProjectID</th>
+                                        <th>DateFrom</th>
+                                        <th>DateTo</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {fileContent.map(e =>
+                                        <tr key={Object.values(e).join('')}>
+                                            {Object.values(e).map(x => <td key={x}>{x}</td>)}
+                                        </tr>)}
+                                </tbody>
+                            </table>
+                        </div>
+                        : <p className='error'>Incorrect data format in file!</p>)
+                    }
+                </>
             }
-
-            {showInput && fileContent && (Object.values(fileContent[0]).length === 4
-                ? <div className='input'>
-                    <table className='input-table'>
-                        <thead>
-                            <tr>
-                                <th>EmpID</th>
-                                <th>ProjectID</th>
-                                <th>DateFrom</th>
-                                <th>DateTo</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {fileContent.map(e =>
-                                <tr key={Object.values(e).join('')}>
-                                    {Object.values(e).map(x => <td key={x}>{x}</td>)}
-                                </tr>)}
-                        </tbody>
-                    </table>
-                </div>
-                : <p>Incorrect data format in file!</p>)
-            }
-        </>
+        </div>
     );
 }
